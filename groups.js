@@ -1,11 +1,11 @@
 function Node(name) {
   this.name = name;
   this.dependencies = [];
+  this.dependents = [];
 }
 
 function Groups() {
   this.nodes = {};
-  this.root = new Node('$root');
 }
 
 function createOrGetNode(context, name) {
@@ -16,14 +16,21 @@ function createOrGetNode(context, name) {
 }
 
 Groups.prototype = {
-  addNode: function(name, parentName) {
-    var childNode = createOrGetNode(this, name);
-    var parentNode;
-    if (parentName) {
-      parentNode = createOrGetNode(this, parentName);
-    } else {
-      parentNode = this.root;
+  addNode: function(name) {
+    createOrGetNode(this, name);
+  },
+
+  hasNode: function(name) {
+    return !!this.nodes[name];
+  },
+
+  relateNodes: function(parent, child) {
+    if (!this.hasNode(parent)) {
+      throw new Error('Cannot relate node without a parent');
     }
+
+    var childNode = createOrGetNode(this, child);
+    var parentNode = this.nodes[parent];
 
     parentNode.dependencies.push(childNode);
   },
@@ -46,7 +53,7 @@ Groups.prototype = {
     return edges;
   },
 
-  group: function() {
+  dependencies: function(name) {
     var nodes = this.nodes;
     function markResolved(group) {
       group.forEach(function(name) {
@@ -54,17 +61,18 @@ Groups.prototype = {
       });
     }
 
+    var root = nodes[name];
     var groups = [];
     var curGroup;
     while (
-      (curGroup = this.findEdges([], {}, this.root)) &&
+      (curGroup = this.findEdges([], {}, root)) &&
       curGroup && curGroup.length
     ) {
-      if (curGroup[0] === this.root.name) return groups;
       markResolved(curGroup);
       groups.push(curGroup);
     }
 
+    return groups;
   }
 };
 

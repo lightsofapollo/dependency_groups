@@ -1,47 +1,52 @@
 suite('groups', function() {
   var DepGroups = require('./groups');
-
-  var groups = {
-    app: ['db', 'queue'],
-    db: ['monit', 'xvfb'],
-    queue: ['monit', 'amqp'],
-    monit: [],
-    xvfb: ['monit'],
-    amqp: []
-  };
-
-  // optimal grouping
-  var idealOrder = [
-    ['monit', 'amqp'],
-    ['xvfb', 'queue'],
-    ['db'],
-    ['app']
-  ];
-
   var subject;
   setup(function() {
     subject = new DepGroups();
+  });
 
-    function addDeps(list, parent) {
-      list.forEach(function(name) {
-        // add all of the nodes in this list
-        subject.addNode(name, parent);
 
-        // if it has deps add them too
-        if (groups[name]) {
-          addDeps(groups[name], name);
-        }
+  suite('mutli-tier', function() {
+    var groups = {
+      app: ['db', 'queue'],
+      db: ['monit', 'xvfb'],
+      queue: ['monit', 'amqp'],
+      monit: [],
+      xvfb: ['monit'],
+      amqp: []
+    };
+
+    // optimal grouping
+    var idealOrder = [
+      ['monit', 'amqp'],
+      ['xvfb', 'queue'],
+      ['db'],
+      ['app']
+    ];
+
+    function addNodes(subject, fixture) {
+      // intentionally inserts multiple times
+      Object.keys(fixture).map(function(parent) {
+        subject.addNode(parent);
+
+        // related children to the parent
+        var children = fixture[parent];
+        children.forEach(subject.relateNodes.bind(subject, parent));
       });
     }
 
-    addDeps(['app'], null);
+    test('#dependencies (of app)', function() {
+      addNodes(subject, groups);
+
+      assert.deepEqual(
+        subject.dependencies('app'),
+        idealOrder
+      );
+    });
+
+    test('#chain', function() {
+    });
+
   });
 
-  test('#group', function() {
-    var start = Date.now();
-    assert.deepEqual(
-      subject.group(),
-      idealOrder
-    );
-  });
 });
