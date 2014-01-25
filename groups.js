@@ -1,8 +1,6 @@
 function Node(name) {
   this.name = name;
-
   this.dependencies = [];
-  this.dependents = [];
 }
 
 function Groups() {
@@ -28,7 +26,6 @@ Groups.prototype = {
     }
 
     parentNode.dependencies.push(childNode);
-    childNode.dependents.push(parentNode);
   },
 
   findEdges: function(edges, seen, node) {
@@ -38,27 +35,22 @@ Groups.prototype = {
     var hasDeps = false;
     node.dependencies.forEach(function(depNode) {
       if (depNode.resolved) return;
-      hasDeps = true;
       this.findEdges(edges, seen, depNode);
+      hasDeps = true;
     }, this);
 
     if (!hasDeps) {
-      edges.push(node);
+      edges.push(node.name);
     }
 
     return edges;
   },
 
   group: function() {
-    function nameify(group) {
-      return group.map(function(item) {
-        return item.name;
-      });
-    }
-
+    var nodes = this.nodes;
     function markResolved(group) {
-      group.forEach(function(item) {
-        item.resolved = true;
+      group.forEach(function(name) {
+        nodes[name].resolved = true;
       });
     }
 
@@ -68,12 +60,11 @@ Groups.prototype = {
       (curGroup = this.findEdges([], {}, this.root)) &&
       curGroup && curGroup.length
     ) {
+      if (curGroup[0] === this.root.name) return groups;
       markResolved(curGroup);
-      groups.push(nameify(curGroup));
+      groups.push(curGroup);
     }
 
-    groups.pop();
-    return groups;
   }
 };
 
