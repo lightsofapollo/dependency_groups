@@ -5,9 +5,9 @@ suite('groups', function() {
     subject = new DepGroups();
   });
 
-
   suite('mutli-tier', function() {
     var groups = {
+      worker: ['queue'],
       app: ['db', 'queue'],
       db: ['monit', 'xvfb'],
       queue: ['monit', 'amqp'],
@@ -19,8 +19,8 @@ suite('groups', function() {
     // optimal grouping
     var idealOrder = [
       ['monit', 'amqp'],
-      ['xvfb', 'queue'],
-      ['db'],
+      ['queue', 'xvfb'],
+      ['worker', 'db'],
       ['app']
     ];
 
@@ -35,18 +35,13 @@ suite('groups', function() {
       });
     }
 
-    test('#dependencies (of app)', function() {
+    test('#tree', function() {
       addNodes(subject, groups);
 
       assert.deepEqual(
-        subject.dependencies('app'),
+        subject.tree(),
         idealOrder
       );
     });
-
-    test('#chain', function() {
-    });
-
   });
-
 });

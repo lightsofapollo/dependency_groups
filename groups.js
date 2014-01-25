@@ -1,11 +1,37 @@
-function Node(name) {
-  this.name = name;
-  this.dependencies = [];
-  this.dependents = [];
+function createSearch(edges) {
+  return function dfs(name, seen, target, resolved) {
+    if (seen[name] || resolved[name]) return;
+    seen[name] = true;
+
+    var hasEdges = false;
+    edges[name].forEach(function(subname) {
+      if (resolved[subname]) return;
+      hasEdges = true;
+      dfs(subname, seen, target, resolved);
+    });
+
+    if (!hasEdges) {
+      target.push(name);
+    }
+  }
+}
+
+function resolveGroup(resolved, group) {
+  var len = group.length;
+  var i = 0;
+  for (; i < len; i++) resolved[group[i]] = true;
+}
+
+function appendIfNotExists(array, item) {
+  if (array.indexOf(item) !== -1) return false;
+  array.push(item);
+  return true;
 }
 
 function Groups() {
   this.nodes = {};
+  this.dependencies = {};
+  this.depedndents = {};
 }
 
 function createOrGetNode(context, name) {
@@ -16,12 +42,16 @@ function createOrGetNode(context, name) {
 }
 
 Groups.prototype = {
-  addNode: function(name) {
-    createOrGetNode(this, name);
-  },
-
   hasNode: function(name) {
     return !!this.nodes[name];
+  },
+
+  addNode: function(name) {
+    if (this.hasNode(name)) return false;
+
+    this.nodes[name] = name;
+    this.dependencies[name] = [];
+    this.depedndents[name] = [];
   },
 
   relateNodes: function(parent, child) {
@@ -29,50 +59,43 @@ Groups.prototype = {
       throw new Error('Cannot relate node without a parent');
     }
 
-    var childNode = createOrGetNode(this, child);
-    var parentNode = this.nodes[parent];
+    // ensure the child node exists or create it.
+    this.addNode(child);
 
-    parentNode.dependencies.push(childNode);
+    appendIfNotExists(this.dependencies[parent], child);
+    appendIfNotExists(this.depedndents[child], parent);
   },
 
-  findEdges: function(edges, seen, node) {
-    if (node.resolved || seen[node.name]) return edges;
-    seen[node.name] = true;
-
-    var hasDeps = false;
-    node.dependencies.forEach(function(depNode) {
-      if (depNode.resolved) return;
-      this.findEdges(edges, seen, depNode);
-      hasDeps = true;
+  groupUnresolved: function(search, resolved) {
+    var target = [];
+    var seen = {};
+    // find the nodes without parent
+    Object.keys(this.nodes).forEach(function(node) {
+      // is a root node
+      if (!this.depedndents[node].length) {
+        // traverse through the node
+        search(node, seen, target, resolved);
+      }
     }, this);
 
-    if (!hasDeps) {
-      edges.push(node.name);
-    }
-
-    return edges;
+    return target;
   },
 
-  dependencies: function(name) {
-    var nodes = this.nodes;
-    function markResolved(group) {
-      group.forEach(function(name) {
-        nodes[name].resolved = true;
-      });
-    }
+  tree: function(name) {
+    var search = createSearch(this.dependencies, {});
+    var results = [];
+    var resolved = {};
 
-    var root = nodes[name];
-    var groups = [];
-    var curGroup;
+    var group;
     while (
-      (curGroup = this.findEdges([], {}, root)) &&
-      curGroup && curGroup.length
+      (group = this.groupUnresolved(search, resolved)) &&
+      group.length
     ) {
-      markResolved(curGroup);
-      groups.push(curGroup);
+      resolveGroup(resolved, group);
+      results.push(group);
     }
 
-    return groups;
+    return results;
   }
 };
 
