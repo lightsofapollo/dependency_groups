@@ -2,7 +2,7 @@ suite('groups', function() {
   var DepGroups = require('./groups');
 
   var groups = {
-    app: ['queue', 'db'],
+    app: ['db', 'queue'],
     db: ['monit', 'xvfb'],
     queue: ['monit', 'amqp'],
     monit: [],
@@ -38,11 +38,10 @@ suite('groups', function() {
   });
 
   test('#group', function() {
-    console.log('---');
+    var start = Date.now();
     assert.deepEqual(
       subject.group(),
       idealOrder
     );
-    console.log('---');
   });
 });

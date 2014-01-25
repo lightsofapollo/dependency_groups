@@ -10,22 +10,6 @@ function Groups() {
   this.root = new Node('$root');
 }
 
-function findEdges(edges, seen, node) {
-  if (seen[node.name]) return;
-  seen[node.name] = true;
-
-  if (!node.dependencies.length) {
-    edges.push(node);
-    return;
-  }
-
-  node.dependencies.forEach(
-    findEdges.bind(this, edges, seen)
-  );
-
-  return edges;
-}
-
 function createOrGetNode(context, name) {
   if (!context.nodes[name]) {
     return context.nodes[name] = new Node(name);
@@ -47,9 +31,49 @@ Groups.prototype = {
     childNode.dependents.push(parentNode);
   },
 
+  findEdges: function(edges, seen, node) {
+    if (node.resolved || seen[node.name]) return edges;
+    seen[node.name] = true;
+
+    var hasDeps = false;
+    node.dependencies.forEach(function(depNode) {
+      if (depNode.resolved) return;
+      hasDeps = true;
+      this.findEdges(edges, seen, depNode);
+    }, this);
+
+    if (!hasDeps) {
+      edges.push(node);
+    }
+
+    return edges;
+  },
+
   group: function() {
-    // get the current edges
-    var edges = findEdges([], {}, this.root);
+    function nameify(group) {
+      return group.map(function(item) {
+        return item.name;
+      });
+    }
+
+    function markResolved(group) {
+      group.forEach(function(item) {
+        item.resolved = true;
+      });
+    }
+
+    var groups = [];
+    var curGroup;
+    while (
+      (curGroup = this.findEdges([], {}, this.root)) &&
+      curGroup && curGroup.length
+    ) {
+      markResolved(curGroup);
+      groups.push(nameify(curGroup));
+    }
+
+    groups.pop();
+    return groups;
   }
 };
 
