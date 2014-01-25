@@ -1,0 +1,14 @@
+{
+  "name": "dependency_groups",
+  "version": "0.0.0",
+  "description": "",
+  "main": "groups.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "BSD-2-Clause",
+  "devDependencies": {
+    "mocha": "~1.17.1"
+  }
+}
