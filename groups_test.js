@@ -19,21 +19,40 @@ suite('groups', function() {
   suite('cyclic', function() {
     var groups = {
       sharedQueue: ['queue'],
-      worker: ['queue'],
-      appworker: ['worker', 'app'],
-      app: ['db', 'queue', 'sharedQueue'],
-      db: ['monit', 'xvfb'],
-      queue: ['monit', 'amqp', 'sharedQueue'],
-      monit: [],
-      xvfb: ['monit'],
-      amqp: []
+      queue: ['sharedQueue']
     };
 
     test('#groupedDependencies', function() {
-      addNodes(subject, groups);
       assert.throws(function() {
-        subject.groupedDependencies();
+        addNodes(subject, groups);
+        var value = subject.groupedDependencies();
       }, /sharedQueue/);
+    });
+  });
+
+  suite('lower and higher deps on same node', function() {
+    var groups = {
+      db: ['monit', 'xvfb'],
+      xvfb: ['monit'],
+      monit: []
+    };
+
+    // optimal grouping
+    var idealOrder = [
+      ['monit'],
+      ['xvfb'],
+      ['db']
+    ];
+
+    setup(function() {
+      addNodes(subject, groups);
+    });
+
+    test('#groupedDependencies', function() {
+      assert.deepEqual(
+        subject.groupedDependencies(),
+        idealOrder
+      );
     });
   });
 

@@ -20,12 +20,20 @@ function createOrGetNode(context, name) {
 Groups.prototype = {
   _traverseReadyNodes: function() {
     var target = [];
+    var hasNodes = false;
+
     // find the nodes without parent
     Object.keys(this.nodes).forEach(function(node) {
+      hasNodes = true;
       // is a root node
       if (this.dependencies[node].length) return;
       target.push(node);
     }, this);
+
+    // cannot resolve a layer of dependencies (cycle)
+    if (hasNodes && !target.length) {
+      throw new Error('cyclic dependency detected... cannot continue');
+    }
 
     target.forEach(function(name) {
       var dependants = this.dependents[name];
@@ -69,17 +77,18 @@ Groups.prototype = {
 
     appendIfNotExists(this.dependencies[parent], child);
     appendIfNotExists(this.dependents[child], parent);
-  },
 
-  /**
-  Traverse all dependencies of a specific node and group them into batches
-  which can be run in parallel.
 
-  @param {String} name of the node.
-  @return {Array} groups of dependencies.
-  */
-  groupedDependenciesOf: function(name) {
-
+    // check for cyclic references
+    if (
+      this.dependents[child].indexOf(parent) !== -1 &&
+      this.dependents[parent].indexOf(child) !== -1
+    ) {
+      throw new Error(
+        'cyclic dependency detected ' + child + ' depends on ' + parent + ' ' +
+        'and vice versa'
+      );
+    }
   },
 
   /**
