@@ -1,25 +1,61 @@
+/**
+Inefficient depth first search with grouping of resolved nodes.
+*/
 function createSearch(edges) {
-  return function dfs(name, seen, target, resolved) {
-    if (seen[name] || resolved[name]) return;
-    seen[name] = true;
+  return function dfs(name, seen, target, resolved, _chain) {
+    // dfs is iterated over so we only want one _chain per dfs.
+    _chain = _chain || {};
 
+    // don't repeat seen or resolved nodes
+    if (seen[name] || resolved[name]) return;
+
+    // book keeping
+    seen[name] = true;
+    _chain[name] = true;
     var hasEdges = false;
-    edges[name].forEach(function(subname) {
-      if (resolved[subname]) return;
+
+    // iterate over the current dependencies
+    edges[name].forEach(function(edgeName) {
+      // no duplicates
+      if (resolved[edgeName]) return;
+
+      // detect the cyclic references
+      if (_chain[edgeName]) {
+        throw new Error(
+          'cyclic dependency found while resolving ' + name
+        );
+      }
+
+      // only nodes which have been fully resolved will be returned.
       hasEdges = true;
-      dfs(subname, seen, target, resolved);
+
+      // depth first search- keep going
+      dfs(edgeName, seen, target, resolved, _chain);
     });
 
-    if (!hasEdges) {
-      target.push(name);
-    }
+    // we want groups of resolved nodes so only push if this node was fully
+    // resolved.
+    if (!hasEdges) target.push(name);
   }
 }
 
-function resolveGroup(resolved, group) {
-  var len = group.length;
-  var i = 0;
-  for (; i < len; i++) resolved[group[i]] = true;
+function groupDependencies(search, context, resolved) {
+  var target = [];
+  var seen = {};
+  // find the nodes without parent
+  Object.keys(context.nodes).forEach(function(node) {
+    // is a root node
+    if (!context.depedndents[node].length) {
+      // traverse through the node
+      search(node, seen, target, resolved);
+    }
+  });
+
+  if (!target.length) return null;
+  for (var i = 0, len = target.length; i < len; i++) {
+    resolved[target[i]] = true;
+  }
+  return target;
 }
 
 function appendIfNotExists(array, item) {
@@ -66,32 +102,18 @@ Groups.prototype = {
     appendIfNotExists(this.depedndents[child], parent);
   },
 
-  groupUnresolved: function(search, resolved) {
-    var target = [];
-    var seen = {};
-    // find the nodes without parent
-    Object.keys(this.nodes).forEach(function(node) {
-      // is a root node
-      if (!this.depedndents[node].length) {
-        // traverse through the node
-        search(node, seen, target, resolved);
-      }
-    }, this);
+  /**
+  Traverse all dependencies and group them into batches which can be run in
+  parallel.
 
-    return target;
-  },
-
-  tree: function(name) {
+  @return {Array}
+  */
+  groupedDependencies: function() {
     var search = createSearch(this.dependencies, {});
     var results = [];
     var resolved = {};
 
-    var group;
-    while (
-      (group = this.groupUnresolved(search, resolved)) &&
-      group.length
-    ) {
-      resolveGroup(resolved, group);
+    while ((group = groupDependencies(search, this, resolved))) {
       results.push(group);
     }
 

@@ -5,6 +5,38 @@ suite('groups', function() {
     subject = new DepGroups();
   });
 
+  function addNodes(subject, fixture) {
+    // intentionally inserts multiple times
+    Object.keys(fixture).map(function(parent) {
+      subject.addNode(parent);
+
+      // related children to the parent
+      var children = fixture[parent];
+      children.forEach(subject.relateNodes.bind(subject, parent));
+    });
+  }
+
+  suite('cyclic', function() {
+    var groups = {
+      sharedQueue: ['queue'],
+      worker: ['queue'],
+      appworker: ['worker', 'app'],
+      app: ['db', 'queue', 'sharedQueue'],
+      db: ['monit', 'xvfb'],
+      queue: ['monit', 'amqp', 'sharedQueue'],
+      monit: [],
+      xvfb: ['monit'],
+      amqp: []
+    };
+
+    test('#groupedDependencies', function() {
+      addNodes(subject, groups);
+      assert.throws(function() {
+        subject.groupedDependencies();
+      }, /sharedQueue/);
+    });
+  });
+
   suite('mutli-tier', function() {
     var groups = {
       worker: ['queue'],
@@ -25,22 +57,11 @@ suite('groups', function() {
       ['appworker', 'app']
     ];
 
-    function addNodes(subject, fixture) {
-      // intentionally inserts multiple times
-      Object.keys(fixture).map(function(parent) {
-        subject.addNode(parent);
-
-        // related children to the parent
-        var children = fixture[parent];
-        children.forEach(subject.relateNodes.bind(subject, parent));
-      });
-    }
-
     test('#tree', function() {
       addNodes(subject, groups);
 
       assert.deepEqual(
-        subject.tree(),
+        subject.groupedDependencies(),
         idealOrder
       );
     });
