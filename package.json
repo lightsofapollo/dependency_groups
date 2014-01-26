@@ -1,11 +1,18 @@
 {
   "name": "dependency_groups",
   "version": "0.0.0",
-  "description": "",
+  "description": "Convert a list of dependnecies into groups",
   "scripts": {
     "test": "make test"
   },
-  "author": "",
+  "keywords": [
+    "dependencies",
+    "dependency",
+    "group",
+    "graph",
+    "parallel"
+  ],
+  "author": "James Lal [:lightsofapollo]",
   "license": "MIT",
   "devDependencies": {
     "mocha": "~1.17.1"
