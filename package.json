@@ -1,9 +1,13 @@
 {
-  "name": "dependency_groups",
+  "name": "dependency-groups",
   "version": "0.0.0",
-  "description": "Convert a list of dependnecies into groups",
+  "description": "Convert a list of dependencies into groups",
   "scripts": {
     "test": "make test"
+  },
+  "repository": {
+    "url": "https://github.com/lightsofapollo/dependency_groups",
+    "type": "git"
   },
   "keywords": [
     "dependencies",
