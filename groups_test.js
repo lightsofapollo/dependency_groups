@@ -8,6 +8,7 @@ suite('groups', function() {
   suite('mutli-tier', function() {
     var groups = {
       worker: ['queue'],
+      appworker: ['worker'],
       app: ['db', 'queue'],
       db: ['monit', 'xvfb'],
       queue: ['monit', 'amqp'],
@@ -21,7 +22,7 @@ suite('groups', function() {
       ['monit', 'amqp'],
       ['queue', 'xvfb'],
       ['worker', 'db'],
-      ['app']
+      ['appworker', 'app']
     ];
 
     function addNodes(subject, fixture) {
