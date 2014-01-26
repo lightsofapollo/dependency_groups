@@ -62,5 +62,27 @@ suite('group dependencies', function() {
         idealOrder
       );
     });
+
+    test('specific single root', function() {
+      assert.deepEqual(
+        subject(groups, ['db']),
+        [
+          ['monit'],
+          ['xvfb'],
+          ['db']
+        ]
+      );
+    });
+
+    test('multiple roots', function() {
+      assert.deepEqual(
+        subject(groups, ['monit', 'worker']),
+        [
+          ['monit', 'amqp'],
+          ['queue'],
+          ['worker']
+        ]
+      );
+    });
   });
 });
