@@ -37,34 +37,6 @@ suite('groups', function() {
     });
   });
 
-  suite('db', function() {
-    var groups = {
-      xfoo: [],
-      db: ['monit', 'xvfb'],
-      monit: [],
-      xvfb: ['monit']
-    };
-
-    // optimal grouping
-    var idealOrder = [
-      ['xfoo', 'monit'],
-      ['xvfb'],
-      ['db']
-    ];
-
-    setup(function() {
-      addNodes(subject, groups);
-    });
-
-    test('#groupedDependenciesOf', function() {
-      var result = subject.groupedDependencies();
-      assert.deepEqual(
-        result,
-        idealOrder
-      );
-    });
-  });
-
   suite('multi-tier', function() {
     var groups = {
       worker: ['queue'],
@@ -87,24 +59,6 @@ suite('groups', function() {
 
     setup(function() {
       addNodes(subject, groups);
-    });
-
-    test('#groupedDependenciesOf - no deps', function() {
-      assert.deepEqual(
-        subject.groupedDependenciesOf('monit'),
-        [['monit']]
-      );
-    });
-
-    test('#groupedDependenciesOf - partial tree', function() {
-      assert.deepEqual(
-        subject.groupedDependenciesOf('db'),
-        [
-          ['monit'],
-          ['xvfb'],
-          ['db']
-        ]
-      );
     });
 
     test('#groupedDependencies', function() {
