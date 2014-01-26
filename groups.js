@@ -92,12 +92,12 @@ Groups.prototype = {
   },
 
   /**
-  Traverse all dependencies and group them into batches which can be run in
-  parallel.
+  Traverse graph grouping dependencies that can run in parallel.
+  All nodes/dependencies are removed in this process.
 
   @return {Array}
   */
-  groupedDependencies: function() {
+  consume: function() {
     var results = [];
     var resolved = {};
 

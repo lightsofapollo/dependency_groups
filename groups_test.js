@@ -22,10 +22,10 @@ suite('groups', function() {
       queue: ['sharedQueue']
     };
 
-    test('#groupedDependencies', function() {
+    test('#consume', function() {
       assert.throws(function() {
         addNodes(subject, groups);
-        var value = subject.groupedDependencies();
+        var value = subject.consume();
       }, /sharedQueue/);
     });
   });
@@ -48,9 +48,9 @@ suite('groups', function() {
       addNodes(subject, groups);
     });
 
-    test('#groupedDependencies', function() {
+    test('#consume', function() {
       assert.deepEqual(
-        subject.groupedDependencies(),
+        subject.consume(),
         idealOrder
       );
     });
@@ -80,10 +80,25 @@ suite('groups', function() {
       addNodes(subject, groups);
     });
 
-    test('#groupedDependencies', function() {
+    test('#consume', function() {
       assert.deepEqual(
-        subject.groupedDependencies(),
+        subject.consume(),
         idealOrder
+      );
+
+      assert.ok(
+        !Object.keys(subject.nodes).length,
+        'removes nodes'
+      );
+
+      assert.ok(
+        !Object.keys(subject.dependencies).length,
+        'removes dependencies'
+      );
+
+      assert.ok(
+        !Object.keys(subject.dependents).length,
+        'removes dependents'
       );
     });
   });
