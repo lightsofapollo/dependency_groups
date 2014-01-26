@@ -40,6 +40,14 @@ launchGroups = [
   ['worker', 'db'],
   ['appworker', 'app']
 ];
+
+// selectively group only some items
+var workerGroups = group(services, ['worker']);
+workerGroups = [
+  ['monit', 'amqp'],
+  ['queue'],
+  ['worker']
+];
 ```
 
 ## LICENSE
