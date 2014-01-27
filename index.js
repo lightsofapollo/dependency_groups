@@ -7,7 +7,7 @@ the dependencies children (recursive).
 function dependOn(originalDeps, newDeps, name) {
   if (newDeps[root]) return;
   newDeps[name] = originalDeps[name];
-  newDeps[name].forEach(function(name) {
+  newDeps[name] && newDeps[name].forEach(function(name) {
     dependOn(originalDeps, newDeps, name);
   });
 }
@@ -37,7 +37,7 @@ function groupDependencies(deps, roots) {
 
     // related children to the parent
     var children = deps[parent];
-    children.forEach(graph.relateNodes.bind(graph, parent));
+    children && children.forEach(graph.relateNodes.bind(graph, parent));
   });
 
   return graph.consume();

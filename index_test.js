@@ -14,6 +14,21 @@ suite('group dependencies', function() {
     });
   });
 
+  suite('single root with no deps', function() {
+    var groups = {
+      root: null
+    };
+
+    test('should handle null groups', function() {
+      var out = subject(groups, ['root']);
+      console.log(out);
+      assert.deepEqual(
+        subject(groups, ['root']),
+        [['root']]
+      );
+    });
+  });
+
   suite('lower and higher deps on same node', function() {
     var groups = {
       db: ['monit', 'xvfb'],
