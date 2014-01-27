@@ -1,6 +1,6 @@
 {
   "name": "dependency-groups",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Convert a list of dependencies into groups",
   "scripts": {
     "test": "make test"
